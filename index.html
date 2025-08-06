@@ -3,226 +3,221 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Sunday League - Padel Tracker</title>
+<title>Padel Dashboard – Admin</title>
 <style>
     body {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-family: Arial, sans-serif;
+        margin: 0;
         background: url('https://upload.wikimedia.org/wikipedia/commons/e/e7/Padel_court_2.jpg') no-repeat center center fixed;
         background-size: cover;
-        margin: 0;
-        padding: 0;
-        color: #fff;
+        color: white;
     }
-    .overlay {
-        background-color: rgba(0, 0, 0, 0.6);
-        min-height: 100vh;
+    body::before {
+        content: "";
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(0,0,0,0.6);
+        z-index: -1;
+    }
+    header {
+        text-align: center;
+        padding: 15px;
+        font-size: 1.8em;
+        font-weight: bold;
+        background: rgba(0,0,0,0.5);
+    }
+    header small {
+        display: block;
+        font-size: 0.8em;
+        color: #ffd700;
+    }
+    .container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
         padding: 20px;
     }
-    h1 {
-        text-align: center;
-        font-size: 3em;
-        margin-bottom: 10px;
-        color: #f1c40f;
-        text-shadow: 2px 2px #000;
+    section {
+        background: rgba(0, 0, 0, 0.75);
+        padding: 15px;
+        border-radius: 10px;
+        flex: 1;
+        min-width: 300px;
     }
     h2 {
-        color: #2ecc71;
-        text-shadow: 1px 1px #000;
+        margin-top: 0;
+        color: #ffd700;
     }
     table {
         width: 100%;
         border-collapse: collapse;
-        margin-bottom: 20px;
-        background: rgba(255, 255, 255, 0.95);
-        color: #000;
-        border-radius: 10px;
-        overflow: hidden;
+        margin-top: 8px;
     }
     th, td {
-        padding: 10px;
+        padding: 6px;
+        border-bottom: 1px solid #555;
         text-align: center;
-        border-bottom: 1px solid #ddd;
     }
     th {
-        background-color: #3498db;
+        background: #1e90ff;
         color: white;
-    }
-    tr:hover {
-        background-color: #f1f1f1;
-    }
-    button {
-        background-color: #e67e22;
-        color: white;
-        padding: 8px 16px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        margin: 2px;
-        font-size: 1em;
-    }
-    button:hover {
-        background-color: #d35400;
     }
     input, select {
-        padding: 6px;
-        margin: 2px;
+        padding: 5px;
+        margin: 3px;
     }
-    .container {
-        max-width: 1000px;
-        margin: auto;
+    button {
+        padding: 6px 12px;
+        margin: 3px;
+        background: #1e90ff;
+        border: none;
+        color: white;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+    button:hover {
+        background: #63b3ed;
+    }
+    .team1 {
+        background: #007bff;
+        color: white;
+    }
+    .team2 {
+        background: #ff6600;
+        color: white;
+    }
+    @media (max-width: 900px) {
+        .container {
+            flex-direction: column;
+        }
     }
 </style>
 </head>
 <body>
-<div class="overlay">
-<div class="container">
-    <h1>🎾 The Sunday League - Padel Tracker</h1>
-    
-    <h2>Spelers Beheer</h2>
-    <input type="text" id="newPlayerName" placeholder="Naam nieuwe speler">
-    <button onclick="addPlayer()">Speler toevoegen</button>
-    
-    <table id="leaderboard">
-        <thead>
-            <tr>
-                <th>Naam</th>
-                <th>Wedstrijden</th>
-                <th>Winst</th>
-                <th>Verlies</th>
-                <th>Win%</th>
-                <th>Punten</th>
-                <th>Verwijderen</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
-    
-    <h2>Wedstrijd Registratie</h2>
-    <select id="playerA"></select> vs <select id="playerB"></select>
-    <select id="winner">
-        <option value="">Kies winnaar</option>
-    </select>
-    <button onclick="recordMatch()">Opslaan</button>
-    
-    <h2>Teams</h2>
-    <button onclick="generateTeams()">Genereer Teams</button>
-    <table id="teams">
-        <thead>
-            <tr>
-                <th>Speler Hoog</th>
-                <th>Punten Hoog</th>
-                <th>Speler Laag</th>
-                <th>Punten Laag</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
+
+<header>
+    🎾 Padel Dashboard – Admin
+    <small id="currentDate"></small>
+</header>
+
+<div style="text-align:center; padding:10px;">
+    <input type="text" id="newPlayer" placeholder="Naam speler">
+    <button onclick="addPlayer()">➕ Speler toevoegen</button>
+    <button style="background:red;" onclick="resetAll()">🗑 Reset</button>
 </div>
+
+<div class="container">
+    <section>
+        <h2>🏆 Leaderboard</h2>
+        <table id="leaderboard">
+            <thead>
+                <tr>
+                    <th>Actief</th>
+                    <th>Naam</th>
+                    <th>Gespeeld</th>
+                    <th>Winst</th>
+                    <th>Verlies</th>
+                    <th>Win%</th>
+                    <th>Punten</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </section>
+
+    <section>
+        <h2>🔄 Teamgenerator</h2>
+        <button onclick="generateTeams()">Genereer Teams</button>
+        <table id="teams">
+            <thead>
+                <tr>
+                    <th class="team1">Team 1</th>
+                    <th class="team2">Team 2</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </section>
 </div>
 
 <script>
-let players = [
-    {name: "Rishaad", matches: 0, wins: 0, losses: 0, points: 0},
-    {name: "Wirin", matches: 0, wins: 0, losses: 0, points: 0},
-    {name: "Jord", matches: 0, wins: 0, losses: 0, points: 0},
-    {name: "Spencer", matches: 0, wins: 0, losses: 0, points: 0},
-    {name: "Ayaan", matches: 0, wins: 0, losses: 0, points: 0},
-    {name: "Sajni", matches: 0, wins: 0, losses: 0, points: 0}
-];
+let players = JSON.parse(localStorage.getItem('players')) || [];
+document.getElementById("currentDate").textContent = new Date().toLocaleDateString('nl-NL', { weekday:"long", year:"numeric", month:"long", day:"numeric" });
+
+function saveData() {
+    localStorage.setItem('players', JSON.stringify(players));
+}
+
+function addPlayer() {
+    let name = document.getElementById("newPlayer").value.trim();
+    if(name) {
+        players.push({name, played: 0, wins: 0, losses: 0, points: 0, active: false});
+        document.getElementById("newPlayer").value = "";
+        updateLeaderboard();
+        saveData();
+    }
+}
+
+function toggleActive(index) {
+    players[index].active = !players[index].active;
+    saveData();
+}
+
+function updatePoints(index, value) {
+    players[index].points = parseInt(value) || 0;
+    updateLeaderboard();
+    saveData();
+}
 
 function updateLeaderboard() {
     let tbody = document.querySelector("#leaderboard tbody");
     tbody.innerHTML = "";
     players.sort((a,b) => b.points - a.points);
-    players.forEach((p, i) => {
-        let winPercent = p.matches > 0 ? ((p.wins / p.matches) * 100).toFixed(1) + "%" : "0%";
-        let row = `<tr>
-            <td contenteditable="true" onblur="editName(${i}, this.innerText)">${p.name}</td>
-            <td>${p.matches}</td>
+    players.forEach((p,i) => {
+        let winPercent = p.played > 0 ? ((p.wins / p.played) * 100).toFixed(1) + "%" : "0%";
+        tbody.innerHTML += `
+        <tr>
+            <td><input type="checkbox" ${p.active ? 'checked' : ''} onclick="toggleActive(${i})"></td>
+            <td>${p.name}</td>
+            <td>${p.played}</td>
             <td>${p.wins}</td>
             <td>${p.losses}</td>
             <td>${winPercent}</td>
-            <td contenteditable="true" onblur="editPoints(${i}, this.innerText)">${p.points}</td>
-            <td><button onclick="removePlayer(${i})">X</button></td>
+            <td><input type="number" value="${p.points}" onchange="updatePoints(${i}, this.value)" style="width:50px"></td>
         </tr>`;
-        tbody.innerHTML += row;
     });
-    updatePlayerSelects();
-}
-
-function updatePlayerSelects() {
-    let selects = [document.getElementById("playerA"), document.getElementById("playerB"), document.getElementById("winner")];
-    selects.forEach(sel => sel.innerHTML = "");
-    players.forEach((p, i) => {
-        selects.forEach(sel => {
-            let opt = document.createElement("option");
-            opt.value = i;
-            opt.textContent = p.name;
-            sel.appendChild(opt.cloneNode(true));
-        });
-    });
-}
-
-function addPlayer() {
-    let name = document.getElementById("newPlayerName").value.trim();
-    if(name) {
-        players.push({name, matches: 0, wins: 0, losses: 0, points: 0});
-        document.getElementById("newPlayerName").value = "";
-        updateLeaderboard();
-    }
-}
-
-function removePlayer(index) {
-    players.splice(index, 1);
-    updateLeaderboard();
-}
-
-function editName(index, newName) {
-    players[index].name = newName.trim();
-    updateLeaderboard();
-}
-
-function editPoints(index, newPoints) {
-    players[index].points = parseInt(newPoints) || 0;
-    updateLeaderboard();
-}
-
-function recordMatch() {
-    let a = parseInt(document.getElementById("playerA").value);
-    let b = parseInt(document.getElementById("playerB").value);
-    let w = parseInt(document.getElementById("winner").value);
-    if(a === b || isNaN(a) || isNaN(b) || isNaN(w)) return alert("Selecteer twee verschillende spelers en een winnaar.");
-    players[a].matches++;
-    players[b].matches++;
-    if(w === a) {
-        players[a].wins++;
-        players[b].losses++;
-    } else {
-        players[b].wins++;
-        players[a].losses++;
-    }
-    updateLeaderboard();
 }
 
 function generateTeams() {
-    let sorted = [...players].sort((a,b) => b.points - a.points);
-    let teams = [];
-    while(sorted.length > 1) {
-        let high = sorted.shift();
-        let low = sorted.pop();
-        teams.push({high: high.name, highPoints: high.points, low: low.name, lowPoints: low.points});
+    let activePlayers = players.filter(p => p.active);
+    if(activePlayers.length < 2) {
+        alert("Minimaal 2 actieve spelers nodig!");
+        return;
     }
+    activePlayers.sort((a,b) => b.points - a.points);
+    let high = [...activePlayers];
+    let low = high.splice(Math.ceil(activePlayers.length / 2));
     let tbody = document.querySelector("#teams tbody");
     tbody.innerHTML = "";
-    teams.forEach(t => {
-        tbody.innerHTML += `<tr>
-            <td>${t.high}</td><td>${t.highPoints}</td>
-            <td>${t.low}</td><td>${t.lowPoints}</td>
-        </tr>`;
-    });
+    while(high.length > 0 && low.length > 0) {
+        let p1 = high.shift();
+        let p2 = low.pop();
+        tbody.innerHTML += `<tr><td class="team1">${p1.name}</td><td class="team2">${p2.name}</td></tr>`;
+    }
+}
+
+function resetAll() {
+    if(confirm("Weet je zeker dat je alles wilt resetten?")) {
+        players = [];
+        saveData();
+        updateLeaderboard();
+        document.querySelector("#teams tbody").innerHTML = "";
+    }
 }
 
 updateLeaderboard();
 </script>
+
 </body>
 </html>
