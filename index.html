@@ -6,31 +6,50 @@
 <title>Padel Dashboard – Admin</title>
 <style>
     body {
-        font-family: Arial, sans-serif;
+        font-family: 'Segoe UI', sans-serif;
         margin: 0;
-        background: url('https://upload.wikimedia.org/wikipedia/commons/e/e7/Padel_court_2.jpg') no-repeat center center fixed;
+        background: url('https://upload.wikimedia.org/wikipedia/commons/0/0b/Padel_court_blue.jpg') no-repeat center center fixed;
         background-size: cover;
-        color: white;
+        color: #222;
     }
     body::before {
         content: "";
         position: fixed;
         top: 0; left: 0;
         width: 100%; height: 100%;
-        background: rgba(0,0,0,0.6);
+        background: rgba(255,255,255,0.7);
         z-index: -1;
     }
     header {
         text-align: center;
-        padding: 15px;
+        padding: 20px;
         font-size: 1.8em;
         font-weight: bold;
-        background: rgba(0,0,0,0.5);
+        background: linear-gradient(90deg, #00b4d8, #48cae4);
+        color: white;
+        position: relative;
+        overflow: hidden;
     }
     header small {
         display: block;
         font-size: 0.8em;
-        color: #ffd700;
+        color: #ffdd00;
+    }
+    .ball {
+        position: absolute;
+        top: 50%;
+        left: -50px;
+        width: 40px;
+        height: 40px;
+        background: #ffdd00;
+        border-radius: 50%;
+        box-shadow: 0 0 10px rgba(0,0,0,0.3);
+        animation: moveBall 6s linear infinite;
+    }
+    @keyframes moveBall {
+        0% { left: -50px; transform: translateY(-50%) rotate(0deg);}
+        50% { left: calc(100% + 50px); transform: translateY(-50%) rotate(360deg);}
+        100% { left: -50px; transform: translateY(-50%) rotate(720deg);}
     }
     .container {
         display: flex;
@@ -39,15 +58,27 @@
         padding: 20px;
     }
     section {
-        background: rgba(0, 0, 0, 0.75);
+        background: white;
         padding: 15px;
-        border-radius: 10px;
+        border-radius: 12px;
         flex: 1;
         min-width: 300px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        animation: fadeIn 0.5s ease-in-out;
+    }
+    @keyframes fadeIn {
+        from {opacity: 0; transform: translateY(10px);}
+        to {opacity: 1; transform: translateY(0);}
     }
     h2 {
         margin-top: 0;
-        color: #ffd700;
+        color: #0077b6;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    h2 span {
+        font-size: 1.2em;
     }
     table {
         width: 100%;
@@ -55,37 +86,41 @@
         margin-top: 8px;
     }
     th, td {
-        padding: 6px;
-        border-bottom: 1px solid #555;
+        padding: 8px;
+        border-bottom: 1px solid #ccc;
         text-align: center;
     }
     th {
-        background: #1e90ff;
+        background: #00b4d8;
         color: white;
     }
-    input, select {
-        padding: 5px;
-        margin: 3px;
+    input[type="number"] {
+        width: 50px;
     }
     button {
-        padding: 6px 12px;
-        margin: 3px;
-        background: #1e90ff;
+        padding: 8px 14px;
+        margin: 5px;
+        background: #00b4d8;
         border: none;
         color: white;
-        border-radius: 5px;
+        border-radius: 6px;
         cursor: pointer;
+        transition: background 0.3s ease;
     }
     button:hover {
-        background: #63b3ed;
+        background: #0096c7;
     }
     .team1 {
         background: #007bff;
         color: white;
+        border-radius: 4px;
+        padding: 4px;
     }
     .team2 {
-        background: #ff6600;
+        background: #ff7b00;
         color: white;
+        border-radius: 4px;
+        padding: 4px;
     }
     @media (max-width: 900px) {
         .container {
@@ -98,6 +133,7 @@
 
 <header>
     🎾 Padel Dashboard – Admin
+    <div class="ball"></div>
     <small id="currentDate"></small>
 </header>
 
@@ -128,7 +164,7 @@
 
     <section>
         <h2>🔄 Teamgenerator</h2>
-        <button onclick="generateTeams()">Genereer Teams</button>
+        <button onclick="generateTeams()">Genereer Teams 🏓</button>
         <table id="teams">
             <thead>
                 <tr>
@@ -156,7 +192,28 @@ function addPlayer() {
         document.getElementById("newPlayer").value = "";
         updateLeaderboard();
         saveData();
+        animateBall();
     }
+}
+
+function animateBall() {
+    let ball = document.createElement('div');
+    ball.style.position = 'absolute';
+    ball.style.width = '20px';
+    ball.style.height = '20px';
+    ball.style.background = '#ffdd00';
+    ball.style.borderRadius = '50%';
+    ball.style.left = '50%';
+    ball.style.top = '50%';
+    ball.style.transform = 'translate(-50%, -50%)';
+    ball.style.zIndex = '999';
+    document.body.appendChild(ball);
+    let y = 0;
+    let interval = setInterval(() => {
+        y += 5;
+        ball.style.top = (50 + Math.sin(y/10)*20) + '%';
+        if (y > 100) { clearInterval(interval); ball.remove(); }
+    }, 30);
 }
 
 function toggleActive(index) {
@@ -205,6 +262,19 @@ function generateTeams() {
         let p2 = low.pop();
         tbody.innerHTML += `<tr><td class="team1">${p1.name}</td><td class="team2">${p2.name}</td></tr>`;
     }
+    animateRacket();
+}
+
+function animateRacket() {
+    let racket = document.createElement('div');
+    racket.textContent = '🏓';
+    racket.style.position = 'fixed';
+    racket.style.bottom = '20px';
+    racket.style.right = '20px';
+    racket.style.fontSize = '40px';
+    racket.style.animation = 'swing 1s ease-in-out';
+    document.body.appendChild(racket);
+    setTimeout(() => racket.remove(), 1000);
 }
 
 function resetAll() {
@@ -218,6 +288,16 @@ function resetAll() {
 
 updateLeaderboard();
 </script>
+
+<style>
+@keyframes swing {
+    0% { transform: rotate(0deg);}
+    25% { transform: rotate(20deg);}
+    50% { transform: rotate(-20deg);}
+    75% { transform: rotate(20deg);}
+    100% { transform: rotate(0deg);}
+}
+</style>
 
 </body>
 </html>
