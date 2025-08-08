@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Padel Dashboard – Admin (2v2 + Top-3)</title>
+<title>Padel Dashboard – Admin (Volledige Ranking)</title>
 <style>
   body{font-family:'Segoe UI',sans-serif;margin:0;
     background:url('https://upload.wikimedia.org/wikipedia/commons/0/0b/Padel_court_blue.jpg') no-repeat center center fixed;
@@ -51,17 +51,17 @@
 <div class="toolbar">
   <input type="text" id="newPlayer" placeholder="Naam speler" />
   <button onclick="addPlayer()">➕ Speler toevoegen</button>
-  <button style="background:#10b981" onclick="countTop3()">📈 Tel Top 3 van dit moment</button>
   <button style="background:#ef4444" onclick="resetAll()">🗑 Reset</button>
 </div>
 
 <div class="container">
   <section>
-    <h2>🏆 <span>Leaderboard</span></h2>
-    <div class="mini">Vink spelers aan die meedoen. Win% en Top-3 tellen automatisch.</div>
+    <h2>🏆 <span>Leaderboard (Volledige ranking)</span></h2>
+    <div class="mini">Vink spelers aan die meedoen. Ranking wordt automatisch bepaald op basis van punten.</div>
     <table id="leaderboard">
       <thead>
         <tr>
+          <th>Ranking</th>
           <th>Actief</th>
           <th>Naam</th>
           <th>Gespeeld</th>
@@ -69,7 +69,6 @@
           <th>Verlies</th>
           <th>Win%</th>
           <th>Punten</th>
-          <th>Top-3</th>
         </tr>
       </thead>
       <tbody></tbody>
@@ -92,7 +91,7 @@
   </section>
 </div>
 
-<section style="margin:0 20px 20px">
+<section style="margin:0 20px 24px">
   <h2>✅ <span>Snel resultaat invoeren (2 vs 2)</span></h2>
   <div class="mini">Kies per team 2 spelers en klik op de winnaar. Leaderboard werkt dan automatisch bij (+3 punten bij winst).</div>
   <div style="display:flex;gap:12px;flex-wrap:wrap;margin:8px 0">
@@ -120,7 +119,7 @@
     const inp = document.getElementById('newPlayer');
     const name = (inp.value||'').trim();
     if(!name) return;
-    players.push({name, played:0, wins:0, losses:0, points:0, active:false, top3:0});
+    players.push({name, played:0, wins:0, losses:0, points:0, active:false});
     inp.value = '';
     draw();
     blipBall();
@@ -141,38 +140,33 @@
     draw(); save();
   }
 
-  // --- Top-3 teller ---
-  function countTop3(){
-    if(players.length===0){ alert('Geen spelers.'); return; }
-    // sorteer op punten (desc) en tel voor eerste 3
-    const sorted = [...players].sort((a,b)=> b.points - a.points);
-    const top = sorted.slice(0,3);
-    top.forEach(t=>{
-      const idx = players.findIndex(p=>p.name===t.name);
-      if(idx>-1){ players[idx].top3 = (players[idx].top3||0)+1; }
-    });
-    save();
-    draw();
-    toast(`Top-3 geteld voor: ${top.map(t=>t.name).join(', ')}`);
-  }
-
-  // --- Leaderboard render ---
+  // --- Leaderboard render (met ranking) ---
   function drawLeaderboard(){
     const tb = document.querySelector('#leaderboard tbody');
     tb.innerHTML = '';
-    players.sort((a,b)=> b.points - a.points);
+    // sorteer op punten desc; bij gelijke punten sorteer op winst/gespeeld als tie-break
+    players.sort((a,b)=>{
+      if(b.points !== a.points) return b.points - a.points;
+      const awp = a.played? a.wins/a.played : 0;
+      const bwp = b.played? b.wins/b.played : 0;
+      if(bwp !== awp) return bwp - awp;
+      return (b.wins - a.wins);
+    });
+
     players.forEach((p,i)=>{
+      const rank = i+1;
+      const medal = rank===1?'🥇 ':rank===2?'🥈 ':rank===3?'🥉 ':'';
       const winPct = p.played>0 ? ((p.wins/p.played)*100).toFixed(1)+'%' : '0%';
       tb.insertAdjacentHTML('beforeend', `
         <tr>
-          <td><input type="checkbox" ${p.active?'checked':''} onclick="toggleActive(${i})"></td>
+          <td>${medal}${rank}</td>
+          <td><input type="checkbox" ${p.active?'checked':''} onclick="toggleActive(${players.indexOf(p)})"></td>
           <td>${p.name}</td>
           <td>${p.played}</td>
           <td>${p.wins}</td>
           <td>${p.losses}</td>
           <td>${winPct}</td>
-          <td><input type="number" value="${p.points}" onchange="setPoints(${i}, this.value)"></td>
-          <td>${p.top3||0}</td>
+          <td><input type="number" value="${p.points}" onchange="setPoints(${players.indexOf(p)}, this.value)"></td>
         </tr>
       `);
     });
@@ -273,18 +267,16 @@
     fillResultSelects();
   }
 
-  // expose for inline handlers
+  // expose
   window.toggleActive=toggleActive;
   window.setPoints=setPoints;
   window.generateTeams=generateTeams;
   window.submitResult=submitResult;
   window.addPlayer=addPlayer;
   window.resetAll=resetAll;
-  window.countTop3=countTop3;
 
   // init
   draw();
-  // datum bij elke dag ververst bij herladen; wil je live bijwerken, setInterval met 24h.
   document.getElementById('currentDate').textContent =
     new Date().toLocaleDateString('nl-NL',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
 </script>
