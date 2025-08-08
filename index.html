@@ -3,18 +3,14 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Padel Dashboard – Admin (2v2 met uitslagen)</title>
+<title>Padel Dashboard – Admin (2v2 + Top-3)</title>
 <style>
-  body{
-    font-family:'Segoe UI',sans-serif;margin:0;
+  body{font-family:'Segoe UI',sans-serif;margin:0;
     background:url('https://upload.wikimedia.org/wikipedia/commons/0/0b/Padel_court_blue.jpg') no-repeat center center fixed;
-    background-size:cover;color:#222;
-  }
-  body::before{content:"";position:fixed;inset:0;background:rgba(255,255,255,.7);z-index:-1;}
-  header{
-    text-align:center;padding:20px;font-size:1.8em;font-weight:700;
-    background:linear-gradient(90deg,#00b4d8,#48cae4);color:#fff;position:relative;overflow:hidden
-  }
+    background-size:cover;color:#222}
+  body::before{content:"";position:fixed;inset:0;background:rgba(255,255,255,.7);z-index:-1}
+  header{text-align:center;padding:20px;font-size:1.8em;font-weight:700;
+    background:linear-gradient(90deg,#00b4d8,#48cae4);color:#fff;position:relative;overflow:hidden}
   header small{display:block;font-size:.8em;color:#ffdd00}
   .ball{position:absolute;top:50%;left:-50px;width:40px;height:40px;background:#ffdd00;border-radius:50%;
     box-shadow:0 0 10px rgba(0,0,0,.25);animation:moveBall 6s linear infinite}
@@ -28,10 +24,8 @@
   .toolbar button:hover{background:#0096c7}
   .toolbar input{padding:8px;border:1px solid #cbd5e1;border-radius:6px}
   .container{display:flex;flex-wrap:wrap;gap:20px;padding:20px}
-  section{
-    background:#fff;padding:16px;border-radius:12px;flex:1;min-width:320px;
-    box-shadow:0 4px 12px rgba(0,0,0,.08);animation:fadeIn .4s ease
-  }
+  section{background:#fff;padding:16px;border-radius:12px;flex:1;min-width:320px;
+    box-shadow:0 4px 12px rgba(0,0,0,.08);animation:fadeIn .4s ease}
   @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
   h2{margin:0 0 8px;display:flex;align-items:center;gap:8px;color:#0077b6}
   table{width:100%;border-collapse:collapse;margin-top:8px}
@@ -42,7 +36,6 @@
   .team2{background:#ff7b00;color:#fff;border-radius:6px;padding:6px 10px;display:inline-block}
   .btn-win{background:#22c55e !important}
   .btn-win:hover{background:#16a34a !important}
-  .pair{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
   .badge{display:inline-block;padding:4px 8px;border-radius:999px;background:#e2f6ff;color:#0369a1;font-weight:600}
   .mini{font-size:.9em;color:#475569}
   @media(max-width:900px){.container{flex-direction:column}}
@@ -58,13 +51,14 @@
 <div class="toolbar">
   <input type="text" id="newPlayer" placeholder="Naam speler" />
   <button onclick="addPlayer()">➕ Speler toevoegen</button>
+  <button style="background:#10b981" onclick="countTop3()">📈 Tel Top 3 van dit moment</button>
   <button style="background:#ef4444" onclick="resetAll()">🗑 Reset</button>
 </div>
 
 <div class="container">
   <section>
     <h2>🏆 <span>Leaderboard</span></h2>
-    <div class="mini">Tip: vink spelers aan die meedoen. Win% wordt automatisch berekend.</div>
+    <div class="mini">Vink spelers aan die meedoen. Win% en Top-3 tellen automatisch.</div>
     <table id="leaderboard">
       <thead>
         <tr>
@@ -75,6 +69,7 @@
           <th>Verlies</th>
           <th>Win%</th>
           <th>Punten</th>
+          <th>Top-3</th>
         </tr>
       </thead>
       <tbody></tbody>
@@ -99,7 +94,7 @@
 
 <section style="margin:0 20px 20px">
   <h2>✅ <span>Snel resultaat invoeren (2 vs 2)</span></h2>
-  <div class="mini">Kies per team 2 spelers en klik op de winnaar. Leaderboard werkt dan automatisch bij (+3 punten voor winnaars).</div>
+  <div class="mini">Kies per team 2 spelers en klik op de winnaar. Leaderboard werkt dan automatisch bij (+3 punten bij winst).</div>
   <div style="display:flex;gap:12px;flex-wrap:wrap;margin:8px 0">
     <select id="t1a"></select>
     <select id="t1b"></select>
@@ -125,7 +120,7 @@
     const inp = document.getElementById('newPlayer');
     const name = (inp.value||'').trim();
     if(!name) return;
-    players.push({name, played:0, wins:0, losses:0, points:0, active:false});
+    players.push({name, played:0, wins:0, losses:0, points:0, active:false, top3:0});
     inp.value = '';
     draw();
     blipBall();
@@ -146,6 +141,21 @@
     draw(); save();
   }
 
+  // --- Top-3 teller ---
+  function countTop3(){
+    if(players.length===0){ alert('Geen spelers.'); return; }
+    // sorteer op punten (desc) en tel voor eerste 3
+    const sorted = [...players].sort((a,b)=> b.points - a.points);
+    const top = sorted.slice(0,3);
+    top.forEach(t=>{
+      const idx = players.findIndex(p=>p.name===t.name);
+      if(idx>-1){ players[idx].top3 = (players[idx].top3||0)+1; }
+    });
+    save();
+    draw();
+    toast(`Top-3 geteld voor: ${top.map(t=>t.name).join(', ')}`);
+  }
+
   // --- Leaderboard render ---
   function drawLeaderboard(){
     const tb = document.querySelector('#leaderboard tbody');
@@ -162,6 +172,7 @@
           <td>${p.losses}</td>
           <td>${winPct}</td>
           <td><input type="number" value="${p.points}" onchange="setPoints(${i}, this.value)"></td>
+          <td>${p.top3||0}</td>
         </tr>
       `);
     });
@@ -202,25 +213,21 @@
 
   // --- Submit 2v2 result ---
   function submitResult(winnerTeam){
-    // read 4 distinct players
     const ids = [t1a.value, t1b.value, t2a.value, t2b.value].map(v=>parseInt(v));
     if(new Set(ids).size!==4){ alert('Kies 4 verschillende spelers.'); return; }
-
     const [i1,i2,i3,i4] = ids;
     const team1 = [i1,i2], team2=[i3,i4];
 
-    // everyone played +1
+    // iedereen +1 gespeeld
     [...team1,...team2].forEach(i=> players[i].played++);
 
-    // +3 points to winners, +1 win; losers +1 loss
     const winners = (winnerTeam==='team1') ? team1 : team2;
     const losers  = (winnerTeam==='team1') ? team2 : team1;
 
     winners.forEach(i=>{ players[i].wins++; players[i].points += 3; });
     losers.forEach(i=>{ players[i].losses++; });
 
-    save();
-    draw();
+    save(); draw();
     toast(`Uitslag opgeslagen: ${players[winners[0]].name} & ${players[winners[1]].name} wonnen 🎉`);
   }
 
@@ -253,7 +260,7 @@
     Object.assign(t.style,{
       position:'fixed',left:'50%',bottom:'24px',transform:'translateX(-50%)',
       background:'#10b981',color:'#fff',padding:'10px 16px',borderRadius:'999px',
-      boxShadow:'0 6px 16px rgba(16,185,129,.35)',fontWeight:600
+      boxShadow:'0 6px 16px rgba(16,185,129,.35)',fontWeight:600,zIndex:9999
     });
     document.body.appendChild(t);
     setTimeout(()=>{ t.style.transition='opacity .6s'; t.style.opacity='0'; },1200);
@@ -273,9 +280,13 @@
   window.submitResult=submitResult;
   window.addPlayer=addPlayer;
   window.resetAll=resetAll;
+  window.countTop3=countTop3;
 
   // init
   draw();
+  // datum bij elke dag ververst bij herladen; wil je live bijwerken, setInterval met 24h.
+  document.getElementById('currentDate').textContent =
+    new Date().toLocaleDateString('nl-NL',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
 </script>
 
 <style>
